@@ -707,13 +707,58 @@
 
       .hero-subtitle {
         font-size: 2rem;
-        color: var(--text-primary);
         margin-bottom: 2rem;
         font-weight: 700;
         letter-spacing: -1px;
-        opacity: 0;
-        transform: translateY(30px);
-        animation: slideInUp 1s ease-out 0.6s forwards, subtitlePulse 2.5s ease-in-out 1.8s infinite;
+        min-height: 2.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      
+      .typing-animation {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        color: var(--primary);
+        text-shadow: 0 0 20px rgba(255, 107, 53, 0.3);
+      }
+      
+      .typing-icon {
+        font-size: 1.5rem;
+        display: inline-block;
+        animation: iconPulse 2s ease-in-out infinite;
+        color: var(--primary);
+        margin-left: 0.25rem;
+      }
+      
+      @keyframes iconPulse {
+        0%, 100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.1);
+          opacity: 0.9;
+        }
+      }
+      
+      .typing-animation::after {
+        content: "|";
+        display: inline-block;
+        margin-left: 2px;
+        animation: blink 1s infinite;
+        color: var(--primary);
+        font-weight: 300;
+      }
+      
+      @keyframes blink {
+        0%, 50% {
+          opacity: 1;
+        }
+        51%, 100% {
+          opacity: 0;
+        }
       }
       
       @keyframes subtitlePulse {
@@ -2882,6 +2927,10 @@
         .hero-subtitle {
           font-size: 1.1rem;
         }
+        
+        .typing-icon {
+          font-size: 1rem;
+        }
 
         .hero-cta {
           justify-content: center;
@@ -3091,7 +3140,7 @@
         <div class="hero-content">
           <div class="hero-greeting">Hello, I'm</div>
           <h1 class="hero-title">Chandra Upendra</h1>
-          <h2 class="hero-subtitle">Senior Software Engineer</h2>
+          <h2 class="hero-subtitle typing-animation"></h2>
           <p class="hero-description">
             Accomplished software engineer with 7+ years of specialized
             experience in JavaScript and Node.js. Expert in crafting
@@ -3911,23 +3960,77 @@
         }, 2500); // 2.5 seconds total welcome duration
       });
 
-      // Typing Animation
+      // Typing Animation for Hero Title
       const heroTitle = document.querySelector(".hero-title");
-      const text = heroTitle.textContent;
+      const titleText = heroTitle.textContent;
       heroTitle.innerHTML = "";
 
       let charIndex = 0;
-      function typeText() {
-        if (charIndex < text.length) {
-          heroTitle.innerHTML += text.charAt(charIndex);
+      function typeTitle() {
+        if (charIndex < titleText.length) {
+          heroTitle.innerHTML += titleText.charAt(charIndex);
           charIndex++;
-          setTimeout(typeText, 100);
+          setTimeout(typeTitle, 100);
         } else {
-          heroTitle.innerHTML = `<span class="typing-text">${text}</span>`;
+          heroTitle.innerHTML = titleText;
+          // Start subtitle typing animation after title is done
+          setTimeout(startSubtitleTyping, 500);
         }
       }
 
-      setTimeout(typeText, 500);
+      setTimeout(typeTitle, 500);
+
+      // Typing Animation for Subtitle - Cycling through phrases with icons
+      const typingPhrases = [
+        { text: "Full Stack Engineer", icon: '<i class="fas fa-laptop-code"></i>' },
+        { text: "Driven by Curiosity", icon: '<i class="fas fa-brain"></i>' },
+        { text: "Passionate About Tech", icon: '<i class="fas fa-microchip"></i>' },
+        { text: "One Challenge at a Time", icon: '<i class="fas fa-lightbulb"></i>' }
+      ];
+      
+      let currentPhraseIndex = 0;
+      let isDeleting = false;
+      let currentText = "";
+      const typingElement = document.querySelector(".typing-animation");
+      let typingSpeed = 80; // Smoother typing speed
+      let deletingSpeed = 40; // Faster deletion
+      
+      function startSubtitleTyping() {
+        typeSubtitle();
+      }
+      
+      function typeSubtitle() {
+        const currentPhrase = typingPhrases[currentPhraseIndex];
+        
+        if (!isDeleting) {
+          // Typing forward
+          currentText = currentPhrase.text.substring(0, currentText.length + 1);
+          typingElement.innerHTML = `<span>${currentText}</span><span class="typing-icon">${currentPhrase.icon}</span>`;
+          
+          if (currentText === currentPhrase.text) {
+            // Finished typing, wait then start deleting
+            isDeleting = true;
+            setTimeout(typeSubtitle, 2000); // Wait 2 seconds before deleting
+            return;
+          }
+          // Variable speed for smoother effect
+          const speed = typingSpeed + Math.random() * 20;
+          setTimeout(typeSubtitle, speed);
+        } else {
+          // Deleting
+          currentText = currentPhrase.text.substring(0, currentText.length - 1);
+          typingElement.innerHTML = `<span>${currentText}</span><span class="typing-icon">${currentPhrase.icon}</span>`;
+          
+          if (currentText === "") {
+            // Finished deleting, move to next phrase
+            isDeleting = false;
+            currentPhraseIndex = (currentPhraseIndex + 1) % typingPhrases.length;
+            setTimeout(typeSubtitle, 300); // Wait before typing next phrase
+            return;
+          }
+          setTimeout(typeSubtitle, deletingSpeed);
+        }
+      }
 
       // Particle Background
       function createParticle() {
